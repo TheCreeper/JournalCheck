@@ -1,0 +1,5 @@
+## Ignore the config
+config.json
+
+## Ignore the compiled binary
+notify

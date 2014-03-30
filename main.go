@@ -8,13 +8,23 @@ import (
     "strings"
     "time"
     "fmt"
+    "os"
 )
+
+func closeJournal() {
+
+    n := journal_close()
+    if (n != 0) {
+
+        log.Fatal("Failed to close the journal!")
+    }
+}
 
 func watchJournal(triggerwords []string, ntf Notifiers) {
 
     if (journal_open() != 0) {
 
-        log.Fatal("Failed to open the journal")
+        log.Fatal("Failed to open the journal!")
     }
 
     log.Print("Now watching Journal")
@@ -31,15 +41,16 @@ func watchJournal(triggerwords []string, ntf Notifiers) {
 
             // failed to iterate to next entry
             log.Print("Failed to iterate to next entry in journal!")
-            break;
+            closeJournal()
+            os.Exit(1)
         }
         for (next > 0) {
 
             if (next < 0) {
 
-                // failed to iterate to next entry
                 log.Print("Failed to iterate to next entry in journal!")
-                break;
+                closeJournal()
+                os.Exit(1)
             }
 
             event := journal_get_data()
@@ -55,10 +66,7 @@ func watchJournal(triggerwords []string, ntf Notifiers) {
             next = journal_next()
         }
     }
-    if (journal_close() != 0) {
-
-        log.Fatal("Failed to close the journal!")
-    }
+    closeJournal()
 }
 
 func main() {
