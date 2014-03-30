@@ -1,6 +1,27 @@
 {
-   "user": "dc0",
-   "host": "localhost",
-   "port": 725,
-   "pass": ""
+   "Notifications":{
+          "email":{
+        "host":"smtp.gmail.com",
+        "port":587,
+        "username":"loxoko@gmail.com",
+        "password":"curoTC7RTZbinVIqfGaaPrJ1nwHMnOch",
+        "to":"loxoko@gmail.com"
+        },
+      "PushOver":{
+         "UserToken":"token",
+         "AppToken":"token"
+      },
+      "PushAlot":{
+         "Token":"token"
+      }
+   },
+   "Watches":[
+      {
+         "Path":"/var/log/auth.log",
+         "TriggerWords":[
+            "Accepted publickey",
+            "Accepted password"
+         ]
+      }
+   ]
 }

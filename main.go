@@ -10,35 +10,50 @@ import (
     "fmt"
 )
 
-func watchJournal(triggerwords []string) {
+func watchJournal(triggerwords []string, ntf Notifiers) {
 
     if (journal_open() != 0) {
 
         log.Fatal("Failed to open the journal")
     }
-    previousLine := journal_get_cursor()
 
     log.Print("Now watching Journal")
     for {
 
         time.Sleep(1000 * time.Millisecond)
 
-        event := journal_read_line()
-        currentLine := journal_test_cursor(previousLine)
-        if (currentLine > 0) {
+        next := journal_next()
+        if (next == 0) {
 
-            // previous and currentline are the same
+            // at end of journal
             continue;
+        } else if (next < 0) {
+
+            // failed to iterate to next entry
+            log.Print("Failed to iterate to next entry in journal!")
+            break;
         }
-        for _, v := range triggerwords {
+        for (next > 0) {
 
-            if strings.Contains(event, v) {
+            if (next < 0) {
 
-                    log.Print(fmt.Sprintf("Login at %s", GetHostName()), " ", event)
+                // failed to iterate to next entry
+                log.Print("Failed to iterate to next entry in journal!")
+                break;
+            }
+
+            event := journal_get_data()
+
+            for _, v := range triggerwords {
+
+                if strings.Contains(event, v) {
+
+                    notice := fmt.Sprintf("Login at %s, %s", GetHostName(), time.Now())
+                    log.Print(notice)
                 }
             }
+            next = journal_next()
         }
-        previousLine = journal_get_cursor()
     }
     if (journal_close() != 0) {
 
@@ -49,5 +64,6 @@ func watchJournal(triggerwords []string) {
 func main() {
 
     triggerwords := []string{"session opened for user"}
-    watchJournal(triggerwords)
+    cfg := GetCFG()
+    watchJournal(triggerwords, cfg.Notifications)
 }

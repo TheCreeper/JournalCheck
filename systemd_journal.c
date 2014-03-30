@@ -37,26 +37,35 @@ int journal_open() {
     return 0;
 }
 
-char* journal_read_line() {
+int journal_close() {
+
+    if (j) {
+
+        sd_journal_close(j);
+        j = NULL;
+        return 0;
+    }
+    return 1;
+}
+
+int journal_next() {
+
+    int r;
+
+    r = sd_journal_next(j);
+    return r;
+}
+
+char* journal_get_data() {
 
     int r;
     char *d;
     size_t l;
 
-    r = sd_journal_next(j);
-    if (r < 0) {
-
-        return "";// failed to iterate
-    }
-    if (r == 0) {
-
-        // at the end of the journal
-    }
-
     r = sd_journal_get_data(j, "MESSAGE", (const void **)&d, &l);
     if (r < 0) {
 
-        // failed to read message feild
+        return "";
     }
     return d;
 }
@@ -80,15 +89,4 @@ int journal_test_cursor(const char *c) {
 
     r = sd_journal_test_cursor(j, c);
     return r;
-}
-
-int journal_close() {
-
-    if (j) {
-
-        sd_journal_close(j);
-        j = NULL;
-        return 0;
-    }
-    return 1;
 }

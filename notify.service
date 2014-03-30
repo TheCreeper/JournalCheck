@@ -1,0 +1,10 @@
+[Unit]
+Description=Notify on Auth Service
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/notify
+ExecStop=/bin/kill -INT $MAINPID
+
+[Install]
+WantedBy=multi-user.target
