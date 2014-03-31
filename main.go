@@ -11,20 +11,32 @@ import (
     "os"
 )
 
-func closeJournal() {
+var (
 
-    n := journal_close()
-    if (n != 0) {
+    exitCode = 0
+)
 
-        log.Fatal("Failed to close the journal!")
-    }
-}
+func watchJournal(triggerwords []string, ntf Notifiers, match string) {
 
-func watchJournal(triggerwords []string, ntf Notifiers) {
-
-    if (journal_open() != 0) {
+    if (journal_open() < 0) {
 
         log.Fatal("Failed to open the journal!")
+    }
+    if (journal_add_match(match) < 0) {
+
+        log.Fatal("Failed to add match in journal!")
+    }
+    if (journal_seek_tail() < 0) {
+
+        log.Fatal("Failed to skip to end of journal!")
+    }
+    /*
+        systemd feature/ bug: without a sd_journal_previous,
+        sd_journal_seek_tail has no effect
+    */
+    if (journal_previous() < 0) {
+
+        log.Fatal("Failed to go back in journal!")
     }
 
     log.Print("Now watching Journal")
@@ -41,17 +53,10 @@ func watchJournal(triggerwords []string, ntf Notifiers) {
 
             // failed to iterate to next entry
             log.Print("Failed to iterate to next entry in journal!")
-            closeJournal()
-            os.Exit(1)
+            exitCode = 1
+            break;
         }
         for (next > 0) {
-
-            if (next < 0) {
-
-                log.Print("Failed to iterate to next entry in journal!")
-                closeJournal()
-                os.Exit(1)
-            }
 
             event := journal_get_data()
 
@@ -61,17 +66,35 @@ func watchJournal(triggerwords []string, ntf Notifiers) {
 
                     notice := fmt.Sprintf("Login at %s, %s", GetHostName(), time.Now())
                     log.Print(notice)
+
+                    err := SendEmail(
+                    ntf.Email.Host,
+                    ntf.Email.Port,
+                    ntf.Email.Username,
+                    ntf.Email.Password,
+                    ntf.Email.To,
+                    fmt.Sprintf("System Event Occurred on %s, %s, %s", GetHostName(), "at", time.Now()),
+                    notice)
+                    if (err != nil) {
+
+                        log.Print(err)
+                    }
                 }
             }
             next = journal_next()
         }
     }
-    closeJournal()
+    if (journal_close() != 0) {
+
+        log.Fatal("Failed to close the journal!")
+    }
 }
 
 func main() {
 
     triggerwords := []string{"session opened for user"}
     cfg := GetCFG()
-    watchJournal(triggerwords, cfg.Notifications)
+    m := "_SYSTEMD_UNIT=sshd.service"
+    watchJournal(triggerwords, cfg.Notifications, m)
+    os.Exit(exitCode)
 }

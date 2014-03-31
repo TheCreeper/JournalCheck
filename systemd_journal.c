@@ -2,44 +2,16 @@
 #include <string.h>
 #include <systemd/sd-journal.h>
 
-#define MATCH "_SYSTEMD_UNIT=sshd.service"
-
 sd_journal *j;
 
 int journal_open() {
 
-    int r;
-
-    r = sd_journal_open(&j, SD_JOURNAL_LOCAL_ONLY);
-    if (r < 0) {
-
-        return 1; // Failed to open journal
-    }
-    r = sd_journal_add_match(j, MATCH, 0);
-    if (r < 0) {
-
-        return 1;
-    }
-    r = sd_journal_seek_tail(j);
-    if (r < 0) {
-
-        return 1;
-    }
-    /*
-        systemd feature/ bug: without a sd_journal_previous,
-        sd_journal_seek_tail has no effect
-    */
-    r = sd_journal_previous(j);
-    if (r < 0) {
-
-        return 1;
-    }
-    return 0;
+    return sd_journal_open(&j, SD_JOURNAL_LOCAL_ONLY);
 }
 
 int journal_close() {
 
-    if (j) {
+    if (j) { // sd_journal_close does not return a value
 
         sd_journal_close(j);
         j = NULL;
@@ -48,12 +20,24 @@ int journal_close() {
     return 1;
 }
 
+int journal_add_match(char *m) {
+
+    return sd_journal_add_match(j, (const void **)m, 0);
+}
+
+int journal_seek_tail() {
+
+    return sd_journal_seek_tail(j);
+}
+
 int journal_next() {
 
-    int r;
+    return sd_journal_next(j);
+}
 
-    r = sd_journal_next(j);
-    return r;
+int journal_previous() {
+
+    return sd_journal_previous(j);
 }
 
 char* journal_get_data() {
@@ -85,8 +69,5 @@ char* journal_get_cursor() {
 
 int journal_test_cursor(const char *c) {
 
-    int r;
-
-    r = sd_journal_test_cursor(j, c);
-    return r;
+    return sd_journal_test_cursor(j, c);
 }

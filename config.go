@@ -20,19 +20,18 @@ type WatchFile struct {
 }
 
 type Notifiers struct {
-    email nEmail
+    Email NEmail
     PushOver NPushOver
     PushAlot NPushAlot
 }
 
 /* Notifiers */
-type nEmail struct {
-
-    host string
-    port int
-    username string
-    password string
-    to []string
+type NEmail struct {
+    Host string
+    Port int
+    Username string
+    Password string
+    To []string
 }
 
 type NPushOver struct {
@@ -104,6 +103,7 @@ func GetCFG() GConfig {
 
     e = json.Unmarshal(b, &tfg)
     if e != nil {
+        log.Print(e)
         log.Fatalf("Could not parse config settings. You may have to remove %s", cfgfile)
     }
     return tfg
