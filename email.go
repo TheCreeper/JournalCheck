@@ -30,23 +30,22 @@ func SendEmail(host string, port int, userName string, password string, to []str
     auth := smtp.PlainAuth("", userName, password, host)
 
     err = smtp.SendMail(
-        fmt.Sprintf("%s:%d", host, port),
-        auth,
-        userName,
-        to,
-        buffer.Bytes())
+    fmt.Sprintf("%s:%d", host, port),
+    auth,
+    userName,
+    to,
+    buffer.Bytes())
 
     return err
 }
 
-// _EmailScript returns a template for the email message to be sent
 func _EmailScript() (script string) {
 
     return `From: {{.From}}
-            To: {{.To}}
-            Subject: {{.Subject}}
-            MIME-version: 1.0
-            Content-Type: text/html; charset="UTF-8"
+To: {{.To}}
+Subject: {{.Subject}}
+MIME-version: 1.0
+Content-Type: text/html; charset="UTF-8"
 
-            {{.Message}}`
+{{.Message}}`
 }

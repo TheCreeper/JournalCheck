@@ -1,3 +1,7 @@
+/*
+    Add support for running as cron job.
+*/
+
 package main
 
 import (
@@ -64,7 +68,7 @@ func watchJournal(triggerwords []string, ntf Notifiers, match string) {
 
                 if strings.Contains(event, v) {
 
-                    notice := fmt.Sprintf("Login at %s, %s", GetHostName(), time.Now())
+                    notice := fmt.Sprintf("System Event Occurred on %s %s %s", GetHostName(), "at", time.Now())
                     log.Print(notice)
 
                     err := SendEmail(
@@ -73,8 +77,8 @@ func watchJournal(triggerwords []string, ntf Notifiers, match string) {
                     ntf.Email.Username,
                     ntf.Email.Password,
                     ntf.Email.To,
-                    fmt.Sprintf("System Event Occurred on %s, %s, %s", GetHostName(), "at", time.Now()),
-                    notice)
+                    notice,
+                    strings.Split(event, "MESSAGE=")[1])
                     if (err != nil) {
 
                         log.Print(err)
@@ -92,9 +96,7 @@ func watchJournal(triggerwords []string, ntf Notifiers, match string) {
 
 func main() {
 
-    triggerwords := []string{"session opened for user"}
     cfg := GetCFG()
-    m := "_SYSTEMD_UNIT=sshd.service"
-    watchJournal(triggerwords, cfg.Notifications, m)
+    watchJournal(cfg.TriggerWords, cfg.Notifications, cfg.Match)
     os.Exit(exitCode)
 }
