@@ -12,6 +12,12 @@ var cfgfile string = "./config.json"
 type GConfig struct {
 
     Notifications Notifiers
+    SystemdJournal Journald
+}
+
+type Journald struct {
+
+    Sleep int64
     Match string
     TriggerWords []string
 }

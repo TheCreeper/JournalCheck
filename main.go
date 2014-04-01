@@ -1,5 +1,5 @@
 /*
-    Add support for running as cron job.
+    Allow running as cron job
 */
 
 package main
@@ -13,22 +13,26 @@ import (
     "time"
     "fmt"
     "os"
+    "os/signal"
+    "syscall"
 )
 
-var (
+func watchJournal(sysd Journald, ntf Notifiers) {
 
-    exitCode = 0
-)
-
-func watchJournal(triggerwords []string, ntf Notifiers, match string) {
+    /*
+        Implement a que
+    */
 
     if (journal_open() < 0) {
 
         log.Fatal("Failed to open the journal!")
     }
-    if (journal_add_match(match) < 0) {
+    if (sysd.Match != "") {
 
-        log.Fatal("Failed to add match in journal!")
+        if (journal_add_match(sysd.Match) < 0) {
+
+            log.Fatal("Failed to add match in journal!")
+        }
     }
     if (journal_seek_tail() < 0) {
 
@@ -46,7 +50,7 @@ func watchJournal(triggerwords []string, ntf Notifiers, match string) {
     log.Print("Now watching Journal")
     for {
 
-        time.Sleep(1000 * time.Millisecond)
+        time.Sleep(time.Duration(sysd.Sleep) * time.Second)
 
         next := journal_next()
         if (next == 0) {
@@ -57,14 +61,13 @@ func watchJournal(triggerwords []string, ntf Notifiers, match string) {
 
             // failed to iterate to next entry
             log.Print("Failed to iterate to next entry in journal!")
-            exitCode = 1
             break;
         }
         for (next > 0) {
 
             event := journal_get_data()
 
-            for _, v := range triggerwords {
+            for _, v := range sysd.TriggerWords {
 
                 if strings.Contains(event, v) {
 
@@ -97,6 +100,23 @@ func watchJournal(triggerwords []string, ntf Notifiers, match string) {
 func main() {
 
     cfg := GetCFG()
-    watchJournal(cfg.TriggerWords, cfg.Notifications, cfg.Match)
-    os.Exit(exitCode)
+
+    go watchJournal(cfg.SystemdJournal, cfg.Notifications)
+
+    sigc := make(chan os.Signal, 1)
+    signal.Notify(sigc,
+        syscall.SIGHUP)
+
+    for {
+
+        s := <-sigc
+
+        switch s {
+
+            case syscall.SIGHUP:
+
+                log.Print("Reloading Configuration File")
+                cfg = GetCFG()
+        }
+    }
 }

@@ -10,8 +10,11 @@
             ]
         }
     },
-    "Match" : "_SYSTEMD_UNIT=sshd.service",
-    "TriggerWords" : [
-        "session opened for user"
-    ]
+    "SystemdJournal" : {
+        "Sleep" : 1,
+        "Match" : "_SYSTEMD_UNIT=sshd.service",
+        "TriggerWords" : [
+            "session opened for user"
+        ]
+    }
 }
