@@ -15,6 +15,7 @@ import (
     "os"
     "os/signal"
     "syscall"
+    "runtime"
 )
 
 func watchJournal(sysd Journald, ntf Notifiers) {
@@ -95,6 +96,11 @@ func watchJournal(sysd Journald, ntf Notifiers) {
 
         log.Fatal("Failed to close the journal!")
     }
+}
+
+func init() {
+
+    runtime.GOMAXPROCS(runtime.NumCPU())
 }
 
 func main() {
