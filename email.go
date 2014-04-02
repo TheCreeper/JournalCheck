@@ -8,13 +8,26 @@ import (
     "text/template"
 )
 
+const emailTemplate = `From: {{.From}}
+To: {{.To}}
+Subject: {{.Subject}}
+MIME-version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+
+This email is sent by journalCheck.
+
+System Events
+=-=-=-=-=-=-=
+
+{{.Body}}`
+
 func SendEmail(host string, port int, userName string, password string, to []string, subject string, message string) (err error) {
 
     parameters := &struct {
         From string
         To string
         Subject string
-        Message string
+        Body string
     }{
         userName,
         strings.Join([]string(to), ","),
@@ -24,8 +37,16 @@ func SendEmail(host string, port int, userName string, password string, to []str
 
     buffer := new(bytes.Buffer)
 
-    template := template.Must(template.New("emailTemplate").Parse(_EmailScript()))
-    template.Execute(buffer, parameters)
+    t, err := template.New("emailTemplate").Parse(emailTemplate)
+    if (err != nil) {
+
+        return
+    }
+    err = t.Execute(buffer, parameters)
+    if (err != nil) {
+
+        return
+    }
 
     auth := smtp.PlainAuth("", userName, password, host)
 
@@ -36,16 +57,5 @@ func SendEmail(host string, port int, userName string, password string, to []str
     to,
     buffer.Bytes())
 
-    return err
-}
-
-func _EmailScript() (script string) {
-
-    return `From: {{.From}}
-To: {{.To}}
-Subject: {{.Subject}}
-MIME-version: 1.0
-Content-Type: text/html; charset="UTF-8"
-
-{{.Message}}`
+    return
 }

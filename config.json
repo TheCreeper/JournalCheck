@@ -12,9 +12,12 @@
     },
     "SystemdJournal" : {
         "Sleep" : 1,
-        "Match" : "_SYSTEMD_UNIT=sshd.service",
+        "Match" : [
+            "_SYSTEMD_UNIT=sshd.service"
+        ],
         "TriggerWords" : [
-            "session opened for user"
+            "Accepted publickey",
+            "Accepted password"
         ]
     }
 }

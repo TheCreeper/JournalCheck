@@ -14,25 +14,26 @@ import (
     "fmt"
     "os"
     "os/signal"
-    "syscall"
-    "runtime"
 )
 
 func watchJournal(sysd Journald, ntf Notifiers) {
-
-    /*
-        Implement a que
-    */
 
     if (journal_open() < 0) {
 
         log.Fatal("Failed to open the journal!")
     }
-    if (sysd.Match != "") {
+    if (journal_flush_matches() < 0) {
 
-        if (journal_add_match(sysd.Match) < 0) {
+        log.Fatal("Failed to flush the journal filter!")
+    }
+    if (sysd.Match[0] != "") {
 
-            log.Fatal("Failed to add match in journal!")
+        for _, v := range sysd.Match {
+
+            if (journal_add_match(v) < 0) {
+
+                log.Fatal("Failed to add match in journal!")
+            }
         }
     }
     if (journal_seek_tail() < 0) {
@@ -66,7 +67,13 @@ func watchJournal(sysd Journald, ntf Notifiers) {
         }
         for (next > 0) {
 
-            event := journal_get_data()
+            var event string
+            if (journal_get_data(&event) < 0) {
+
+                log.Print("Failed to get journal data!")
+            }
+
+            event = strings.Split(event, "MESSAGE=")[1]
 
             for _, v := range sysd.TriggerWords {
 
@@ -74,6 +81,7 @@ func watchJournal(sysd Journald, ntf Notifiers) {
 
                     notice := fmt.Sprintf("System Event Occurred on %s %s %s", GetHostName(), "at", time.Now())
                     log.Print(notice)
+                    log.Print(event)
 
                     err := SendEmail(
                     ntf.Email.Host,
@@ -82,7 +90,7 @@ func watchJournal(sysd Journald, ntf Notifiers) {
                     ntf.Email.Password,
                     ntf.Email.To,
                     notice,
-                    strings.Split(event, "MESSAGE=")[1])
+                    event)
                     if (err != nil) {
 
                         log.Print(err)
@@ -92,37 +100,40 @@ func watchJournal(sysd Journald, ntf Notifiers) {
             next = journal_next()
         }
     }
-    if (journal_close() != 0) {
+    if (journal_close() < 0) {
 
         log.Fatal("Failed to close the journal!")
     }
 }
 
-func init() {
-
-    runtime.GOMAXPROCS(runtime.NumCPU())
-}
-
 func main() {
 
-    cfg := GetCFG()
+    cfg, err := GetCFG()
+    if (err != nil) {
+
+        log.Fatalf("Could not parse config settings. You may have to remove %s", cfgfile)
+    }
 
     go watchJournal(cfg.SystemdJournal, cfg.Notifications)
 
     sigc := make(chan os.Signal, 1)
+    /*
+        Only interrupt and kill is guaranteed to work across
+        multiple platforms.
+    */
     signal.Notify(sigc,
-        syscall.SIGHUP)
+        os.Interrupt)
 
     for {
 
+        // Main loop
+
         s := <-sigc
 
-        switch s {
+        if (s == os.Interrupt) {
 
-            case syscall.SIGHUP:
-
-                log.Print("Reloading Configuration File")
-                cfg = GetCFG()
+            // Gracefully close log and exit here
+            os.Exit(0)
         }
     }
 }

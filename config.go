@@ -3,7 +3,6 @@ package main
 import (
     "encoding/json"
     "io/ioutil"
-    "log"
 //    "os"
 )
 
@@ -18,7 +17,7 @@ type GConfig struct {
 type Journald struct {
 
     Sleep int64
-    Match string
+    Match []string
     TriggerWords []string
 }
 
@@ -103,9 +102,13 @@ func CheckIfResetConfig(args []string) {
     }
 }
 */
-func GetCFG() GConfig {
+func GetCFG() (tfg GConfig, err error) {
 
-    b, e := ioutil.ReadFile(cfgfile)
+    b, err := ioutil.ReadFile(cfgfile)
+    if (err != nil) {
+
+        return
+    }
     /*
     tfg := GetDefaultConfig()
     if e != nil {
@@ -118,12 +121,11 @@ func GetCFG() GConfig {
         }
         log.Fatal("Built config file. please fill it in.")
     }*/
-    var tfg GConfig
 
-    e = json.Unmarshal(b, &tfg)
-    if e != nil {
+    err = json.Unmarshal(b, &tfg)
+    if (err != nil) {
 
-        log.Fatalf("Could not parse config settings. You may have to remove %s", cfgfile)
+        return
     }
-    return tfg
+    return
 }
