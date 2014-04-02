@@ -14,6 +14,7 @@ import (
     "fmt"
     "os"
     "os/signal"
+    "flag"
 )
 
 func watchJournal(sysd Journald, ntf Notifiers) {
@@ -106,7 +107,14 @@ func watchJournal(sysd Journald, ntf Notifiers) {
     }
 }
 
+func init() {
+
+    flag.StringVar(&cfgfile, "f", "./config.json", "The configuration file")
+}
+
 func main() {
+
+    flag.Parse()
 
     cfg, err := GetCFG()
     if (err != nil) {

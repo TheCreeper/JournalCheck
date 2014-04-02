@@ -3,3 +3,6 @@ config.json
 
 ## Ignore the compiled binary
 notify
+
+## ignore gitignore
+.gitignore
