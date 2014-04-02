@@ -7,16 +7,6 @@ import (
 	"strings"
 )
 
-func CountLines(filepath string) int {
-
-	b, e := ioutil.ReadFile(filepath)
-	if e != nil {
-
-		log.Fatalf("Cannot get line count for %s", filepath)
-	}
-	return len(strings.Split(string(b), "\n"))
-}
-
 func GetHostName() string {
 
 	n, e := os.Hostname()

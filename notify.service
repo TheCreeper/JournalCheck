@@ -1,5 +1,5 @@
 [Unit]
-Description=Notify on Auth Service
+Description=Notify on Event
 After=network.target
 
 [Service]

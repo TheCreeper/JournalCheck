@@ -1,8 +1,23 @@
-## Ignore the config
-config.json
+# Compiled Object files, Static and Dynamic libs (Shared Objects)
+*.o
+*.a
+*.so
 
-## Ignore the compiled binary
-notify
+# Folders
+_obj
+_test
 
-## ignore gitignore
-.gitignore
+# Architecture specific extensions/prefixes
+*.[568vq]
+[568vq].out
+
+*.cgo1.go
+*.cgo2.c
+_cgo_defun.c
+_cgo_gotypes.go
+_cgo_export.*
+
+_testmain.go
+
+*.exe
+.config.json
