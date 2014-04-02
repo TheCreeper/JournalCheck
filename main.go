@@ -17,6 +17,11 @@ import (
     "flag"
 )
 
+var (
+
+    cfgfile string
+)
+
 func watchJournal(sysd Journald, ntf Notifiers) {
 
     if (journal_open() < 0) {
@@ -116,7 +121,7 @@ func main() {
 
     flag.Parse()
 
-    cfg, err := GetCFG()
+    cfg, err := GetCFG(cfgfile)
     if (err != nil) {
 
         log.Fatalf("Could not parse config settings. You may have to remove %s", cfgfile)

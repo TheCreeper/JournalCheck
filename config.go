@@ -6,8 +6,6 @@ import (
 //    "os"
 )
 
-var cfgfile string = "./config.json"
-
 type GConfig struct {
 
     Notifications Notifiers
@@ -102,9 +100,9 @@ func CheckIfResetConfig(args []string) {
     }
 }
 */
-func GetCFG() (tfg GConfig, err error) {
+func GetCFG(f string) (tfg GConfig, err error) {
 
-    b, err := ioutil.ReadFile(cfgfile)
+    b, err := ioutil.ReadFile(f)
     if (err != nil) {
 
         return
