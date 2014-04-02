@@ -1,10 +1,8 @@
 package main
 
 import (
-	"io/ioutil"
-	"log"
+
 	"os"
-	"strings"
 )
 
 func GetHostName() string {
