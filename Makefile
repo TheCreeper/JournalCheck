@@ -1,18 +1,16 @@
+#!/usr/bin/make -f
+
+SHELL=/bin/sh
+bin=bin
+name=notify
+
 all: build
 
 build:
-	go build -v -o notify
+	go build -v -o bin/$(name)
 
 clean:
 	go clean -x
 
 remove:
 	go clean -i
-
-install:
-	cp notify /usr/bin/
-	cp notify.service /usr/lib/systemd/system
-
-deinstall:
-	rm /usr/bin/notify
-	rm /usr/lib/systemd/system/notify.service
