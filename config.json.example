@@ -10,7 +10,7 @@
 			]
 		}
 	},
-	"SystemdJournal" : {
+	"Journald" : {
 		"Sleep" : 1,
 		"Match" : [
 			"_SYSTEMD_UNIT=sshd.service"
