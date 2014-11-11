@@ -1,11 +1,11 @@
 package main
 
 import (
-    "bytes"
-    "fmt"
-    "net/smtp"
-    "strings"
-    "text/template"
+	"bytes"
+	"fmt"
+	"net/smtp"
+	"strings"
+	"text/template"
 )
 
 const emailTemplate = `From: {{.From}}
@@ -23,39 +23,39 @@ System Events
 
 func SendEmail(host string, port int, userName string, password string, to []string, subject string, message string) (err error) {
 
-    parameters := &struct {
-        From string
-        To string
-        Subject string
-        Body string
-    }{
-        userName,
-        strings.Join([]string(to), ","),
-        subject,
-        message,
-    }
+	parameters := &struct {
+		From    string
+		To      string
+		Subject string
+		Body    string
+	}{
+		userName,
+		strings.Join([]string(to), ","),
+		subject,
+		message,
+	}
 
-    buffer := new(bytes.Buffer)
+	buffer := new(bytes.Buffer)
 
-    t, err := template.New("emailTemplate").Parse(emailTemplate)
-    if (err != nil) {
+	t, err := template.New("emailTemplate").Parse(emailTemplate)
+	if err != nil {
 
-        return
-    }
-    err = t.Execute(buffer, parameters)
-    if (err != nil) {
+		return
+	}
+	err = t.Execute(buffer, parameters)
+	if err != nil {
 
-        return
-    }
+		return
+	}
 
-    auth := smtp.PlainAuth("", userName, password, host)
+	auth := smtp.PlainAuth("", userName, password, host)
 
-    err = smtp.SendMail(
-    fmt.Sprintf("%s:%d", host, port),
-    auth,
-    userName,
-    to,
-    buffer.Bytes())
+	err = smtp.SendMail(
+		fmt.Sprintf("%s:%d", host, port),
+		auth,
+		userName,
+		to,
+		buffer.Bytes())
 
-    return
+	return
 }

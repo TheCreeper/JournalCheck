@@ -15,11 +15,7 @@ import (
 	"time"
 )
 
-var (
-	cfgfile string
-)
-
-func WatchJournal(sysd Journald, ntf Notifiers) {
+func WatchJournal(cfg ClientConfig) {
 
 	if journal_open() < 0 {
 
@@ -29,9 +25,9 @@ func WatchJournal(sysd Journald, ntf Notifiers) {
 
 		log.Fatal("Failed to flush the journal filter!")
 	}
-	if sysd.Match[0] != "" {
+	if len(cfg.Journald.Match) < 1 {
 
-		for _, v := range sysd.Match {
+		for _, v := range cfg.Journald.Match {
 
 			if journal_add_match(v) < 0 {
 
@@ -55,7 +51,7 @@ func WatchJournal(sysd Journald, ntf Notifiers) {
 	log.Print("Now watching Journal")
 	for {
 
-		time.Sleep(time.Duration(sysd.Sleep) * time.Second)
+		time.Sleep(time.Duration(cfg.Journald.Sleep) * time.Second)
 
 		next := journal_next()
 		if next == 0 {
@@ -78,7 +74,7 @@ func WatchJournal(sysd Journald, ntf Notifiers) {
 
 			event = strings.Split(event, "MESSAGE=")[1]
 
-			for _, v := range sysd.TriggerWords {
+			for _, v := range cfg.Journald.TriggerWords {
 
 				if strings.Contains(event, v) {
 
@@ -87,11 +83,11 @@ func WatchJournal(sysd Journald, ntf Notifiers) {
 					log.Print(event)
 
 					err := SendEmail(
-						ntf.Email.Host,
-						ntf.Email.Port,
-						ntf.Email.Username,
-						ntf.Email.Password,
-						ntf.Email.To,
+						cfg.Notifications.Email.Host,
+						cfg.Notifications.Email.Port,
+						cfg.Notifications.Email.Username,
+						cfg.Notifications.Email.Password,
+						cfg.Notifications.Email.To,
 						notice,
 						event)
 					if err != nil {
@@ -111,17 +107,16 @@ func WatchJournal(sysd Journald, ntf Notifiers) {
 
 func init() {
 
-	flag.StringVar(&cfgfile, "f", "./config.json", "The configuration file")
+	flag.StringVar(&ConfigFile, "f", "./config.json", "The configuration file")
 	flag.Parse()
 }
 
 func main() {
 
-	cfg, err := GetCFG(cfgfile)
+	cfg, err := GetCFG(ConfigFile)
 	if err != nil {
 
-		log.Fatalf("Could not parse config settings. You may have to remove %s", cfgfile)
+		log.Fatalf("Could not parse config settings. You may have to remove %s", ConfigFile)
 	}
-
-	WatchJournal(cfg.SystemdJournal, cfg.Notifications)
+	WatchJournal(cfg)
 }

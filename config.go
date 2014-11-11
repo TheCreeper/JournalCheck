@@ -1,129 +1,56 @@
 package main
 
 import (
-    "encoding/json"
-    "io/ioutil"
-//    "os"
+	"encoding/json"
+	"io/ioutil"
 )
 
-type GConfig struct {
+var (
+	ConfigFile string
+)
 
-    Notifications Notifiers
-    SystemdJournal Journald
+type ClientConfig struct {
+	Journald struct {
+		Sleep        int64
+		Match        []string
+		TriggerWords []string
+	}
+
+	Notifications struct {
+		Email struct {
+			Host     string
+			Port     int
+			Username string
+			Password string
+			To       []string
+		}
+	}
 }
 
-type Journald struct {
+func (cfg *ClientConfig) Validate() (err error) {
 
-    Sleep int64
-    Match []string
-    TriggerWords []string
+	return
 }
 
-type Notifiers struct {
+func GetCFG(f string) (cfg ClientConfig, err error) {
 
-    Email NEmail
-    PushOver NPushOver
-    PushAlot NPushAlot
-}
+	b, err := ioutil.ReadFile(f)
+	if err != nil {
 
-/* Notifiers */
-type NEmail struct {
+		return
+	}
 
-    Host string
-    Port int
-    Username string
-    Password string
-    To []string
-}
+	err = json.Unmarshal(b, &cfg)
+	if err != nil {
 
-type NPushOver struct {
+		return
+	}
 
-    UserToken string
-    AppToken  string
-}
+	err = cfg.Validate()
+	if err != nil {
 
-type NPushAlot struct {
+		return
+	}
 
-    Token string
-}
-/*
-func GetDefaultConfig() GConfig {
-
-    var tfg GConfig
-
-    var nfr Notifiers
-    var mail NEmail
-    var pusho NPushOver
-    var pusha NPushAlot
-
-    mail.Host = "127.0.0.1"
-    mail.Port = 25
-    mail.Username = "notify@example.com"
-    mail.Password = ""
-    mail.To = []string {
-
-        "session opened for user"
-    }
-    nfr.Email = mail
-
-    pusho.UserToken = "token"
-    pusho.AppToken = "token"
-    nfr.PushOver = pusho
-
-    pusha.Token = "token"
-    nfr.PushAlot = pusha
-
-    tfg.Notifications = nfr
-    return tfg
-}
-
-func CheckIfResetConfig(args []string) {
-
-    if len(args) == 2 {
-
-        if args[1] == "reset" {
-
-            e := os.Remove(cfgfile)
-            if e != nil {
-
-                log.Fatal("Could not remove current config file. Permissions issue?")
-            }
-            Default := GetDefaultConfig()
-            out, e := json.Marshal(Default)
-            e = ioutil.WriteFile(cfgfile, out, 600)
-            if e != nil {
-
-                log.Fatal("cannot open settings file :(")
-            }
-            log.Fatal("Built config file. please fill it in.")
-        }
-    }
-}
-*/
-func GetCFG(f string) (tfg GConfig, err error) {
-
-    b, err := ioutil.ReadFile(f)
-    if (err != nil) {
-
-        return
-    }
-    /*
-    tfg := GetDefaultConfig()
-    if e != nil {
-
-        out, e := json.Marshal(tfg)
-        e = ioutil.WriteFile(cfgfile, out, 600)
-        if e != nil {
-
-            log.Fatal("cannot open settings file :(")
-        }
-        log.Fatal("Built config file. please fill it in.")
-    }*/
-
-    err = json.Unmarshal(b, &tfg)
-    if (err != nil) {
-
-        return
-    }
-    return
+	return
 }
